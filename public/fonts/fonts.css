@@ -1,0 +1,19 @@
+/* ===== ثمانية Sans ===== */
+@font-face { font-family: 'ThmanyahSans'; font-weight: 300; font-style: normal; font-display: swap; src: url('thmanyahsans-Light.otf') format('opentype'); }
+@font-face { font-family: 'ThmanyahSans'; font-weight: 400; font-style: normal; font-display: swap; src: url('thmanyahsans-Regular.otf') format('opentype'); }
+@font-face { font-family: 'ThmanyahSans'; font-weight: 500; font-style: normal; font-display: swap; src: url('thmanyahsans-Medium.otf') format('opentype'); }
+@font-face { font-family: 'ThmanyahSans'; font-weight: 700; font-style: normal; font-display: swap; src: url('thmanyahsans-Bold.otf') format('opentype'); }
+@font-face { font-family: 'ThmanyahSans'; font-weight: 900; font-style: normal; font-display: swap; src: url('thmanyahsans-Black.otf') format('opentype'); }
+
+/* ===== ثمانية Serif Text (موجود عندك) ===== */
+@font-face { font-family: 'ThmanyahSerifText'; font-weight: 300; font-style: normal; font-display: swap; src: url('thmanyahseriftext-Light.otf') format('opentype'); }
+@font-face { font-family: 'ThmanyahSerifText'; font-weight: 400; font-style: normal; font-display: swap; src: url('thmanyahseriftext-Regular.otf') format('opentype'); }
+@font-face { font-family: 'ThmanyahSerifText'; font-weight: 500; font-style: normal; font-display: swap; src: url('thmanyahseriftext-Medium.otf') format('opentype'); }
+@font-face { font-family: 'ThmanyahSerifText'; font-weight: 700; font-style: normal; font-display: swap; src: url('thmanyahseriftext-Bold.otf') format('opentype'); }
+@font-face { font-family: 'ThmanyahSerifText'; font-weight: 900; font-style: normal; font-display: swap; src: url('thmanyahseriftext-Black.otf') format('opentype'); }
+
+/* ===== ثمانية Serif Display (للعناوين) — أسماء الملفات تخمين ===== */
+@font-face { font-family: 'ThmanyahSerifDisplay'; font-weight: 400; font-style: normal; font-display: swap; src: url('thmanyahserifdisplay-Regular.otf') format('opentype'); }
+@font-face { font-family: 'ThmanyahSerifDisplay'; font-weight: 500; font-style: normal; font-display: swap; src: url('thmanyahserifdisplay-Medium.otf') format('opentype'); }
+@font-face { font-family: 'ThmanyahSerifDisplay'; font-weight: 700; font-style: normal; font-display: swap; src: url('thmanyahserifdisplay-Bold.otf') format('opentype'); }
+@font-face { font-family: 'ThmanyahSerifDisplay'; font-weight: 900; font-style: normal; font-display: swap; src: url('thmanyahserifdisplay-Black.otf') format('opentype'); }

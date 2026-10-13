@@ -1,0 +1,202 @@
+<div class="follow" aria-hidden="true" [class.on]="follow().on"
+     [style.transform]="'translate(' + (follow().x + 22) + 'px,' + (follow().y + 22) + 'px)'">
+  <app-hand [id]="heroActive().id" [ch]="heroActive().c" [decor]="true" style="--h: 130px" />
+</div>
+
+<header class="top" [class.light]="light()">
+  <a class="brand" href="#home" aria-label="الرئيسية" (click)="goto($event, 'home')">
+    @if (logoIdx() < logos.length) {
+      <span class="chip-logo" [style.display]="logoOk() ? 'inline-flex' : 'none'">
+        <img [src]="logo()" alt="" (load)="logoOk.set(true)" (error)="logoFail()" />
+      </span>
+    }
+    <span class="brand-name">نسمعك</span>
+  </a>
+  <nav>
+    @for (n of nav; track n.id) {
+      <a [href]="'#' + n.id" [class.act]="current() === n.id" (click)="goto($event, n.id)">{{ n.t }}</a>
+    }
+  </nav>
+</header>
+
+<main dir="rtl" appSheet>
+  <!-- 1) الهيرو (أبيض) -->
+  <section id="home" class="hero stk-pin" data-bg="light">
+    <div class="pin">
+      <div class="hero-deco" aria-hidden="true"></div>
+      <div class="hero-inner">
+        <h1 class="title" (mousemove)="onTitleMove($event)" (mouseleave)="onTitleLeave()" (click)="tap($event)">
+          <span class="line t1">@for (c of titleLines[0]; track $index) {<span class="l" [class.on]="isHero(c)" (mouseenter)="hoverHero(c)" (click)="hoverHero(c)">{{ c }}</span>}</span>
+          <span class="line t2">@for (c of titleLines[1]; track $index) {<span class="l" [class.lead]="$index < 3" [class.on]="isHero(c)" (mouseenter)="hoverHero(c)" (click)="hoverHero(c)">{{ c }}</span>}</span>
+        </h1>
+      </div>
+
+      <div class="strip-wrap" #strip [class.show]="shown()" (pointerdown)="dragStart($event)" (pointermove)="dragMove($event)" (pointerup)="dragEnd()" (pointercancel)="dragEnd()" (wheel)="onWheel($event)" (mouseleave)="hot.set(false)">
+        <div class="track">
+          @for (s of stripLetters; track s.id; let i = $index) {
+            <div class="mini" [class.on]="hot() && heroActive() === s" [style.transition-delay.ms]="i * 5"
+                 (mouseenter)="pick(s)" (click)="pick(s)">
+              <div class="wv">
+                <div class="sc"><app-hand [id]="s.id" [ch]="s.c" [decor]="true" /></div>
+              </div>
+              <span>{{ s.c }}</span>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2) الإشارات (أسود): الشاشة البيضاء تنقسم نصين وتنفتح -->
+  <i class="stk-anchor" data-for="try"></i>
+  <div id="try" class="sheet-wrap stk-over">
+  <section class="sheet try" data-bg="dark">
+    <div class="try-inner">
+      <div class="handcard" data-card [appReveal]="250" mask>
+        <app-hand [id]="sentenceActive().id" [ch]="sentenceActive().c" style="--h: clamp(120px, 24vw, 200px)" />
+      </div>
+      <h2 class="sentence" [appReveal]="400" words>
+        @for (w of words; track $index) {
+          <span class="word">@for (c of w; track $index) {<span class="l" [class.on]="isOn(c)" (mouseenter)="hoverSentence(c)" (click)="hoverSentence(c)">{{ c }}</span>}</span>
+        }
+      </h2>
+      <p class="soft" [appReveal]="750" chunks>نحوّل حركات اليد إلى أشكال بصرية بسيطة، حتى تُقرأ الإشارة بسهولة في كل مكان.</p>
+    </div>
+  </section>
+  </div>
+
+  <!-- 3) الحروف (أسود) -->
+  <i class="stk-anchor" data-for="letters"></i>
+  <section id="letters" class="night block stk-pin" data-bg="dark">
+    <h2 [appReveal]="0" words>الحــروف</h2>
+    <div class="handcard light-card" data-card [appReveal]="150" mask>
+      <app-hand [id]="gridActive().id" [ch]="gridActive().c" style="--h: clamp(110px, 22vw, 160px)" />
+    </div>
+    <div class="grid">
+      @for (s of letters; track s.id; let i = $index) {
+        <span class="cell" [appReveal]="250 + i * 15">
+          <span class="ch" role="button" tabindex="0" [attr.aria-label]="'إشارة حرف ' + s.name" [class.on]="gridActive() === s" (mouseenter)="gridActive.set(s)" (focus)="gridActive.set(s)" (click)="gridActive.set(s)" (keydown.enter)="gridActive.set(s)">{{ s.c }}</span>
+        </span>
+      }
+    </div>
+  </section>
+
+  <!-- 4) الكيبورد (فاتح) -->
+  <i class="stk-anchor" data-for="keys"></i>
+  <div id="keys" class="sheet-wrap stk-pin stk-over">
+  <section class="sheet keys" data-bg="light">
+    <h2 [appReveal]="0" words>اكتــب بالإشــارة</h2>
+
+    <div class="typed" [appReveal]="450">
+      @if (typed().length) {
+        @for (t of typed(); track $index) {
+          @if (t) {
+            <div class="th"><app-hand [id]="t.id" [ch]="t.c" style="--h: clamp(64px, 11vw, 110px)" /></div>
+          } @else { <div class="gap"></div> }
+        }
+      } @else if (kbActive(); as k) {
+        <div class="th"><app-hand [id]="k.id" [ch]="k.c" style="--h: clamp(90px, 18vw, 150px)" /></div>
+      } @else {
+        <span class="ph">اكتب أي حرف لتظهر إشارته</span>
+      }
+    </div>
+
+    <div class="kb" [appReveal]="500">
+      @for (row of rows; track $index) {
+        <div class="krow" [appReveal]="550 + $index * 70">
+          @for (s of row; track s.id) {
+            <button class="key" [class.on]="kbActive() === s" [class.down]="down() === s.id"
+                    (mouseenter)="kbActive.set(s)" (click)="press(s)">{{ s.c }}</button>
+          }
+        </div>
+      }
+      <div class="krow" [appReveal]="550 + rows.length * 70">
+        <button class="key wide" (click)="back()" aria-label="حذف">⌫</button>
+        <button class="key space" (click)="space()">مسافة</button>
+      </div>
+    </div>
+  </section>
+
+  </div>
+
+  <!-- 5) الكاميرا (أسود، جاهز لنموذج التعلّم الآلي) -->
+  <i class="stk-anchor" data-for="camera"></i>
+  <div id="camera" class="sheet-wrap stk-over">
+  <section class="sheet night cam" data-bg="dark">
+    <div class="info">
+      <h2 [appReveal]="0" words>جرّب إشارتك بنفسك</h2>
+      <p class="info-text" [appReveal]="150" chunks>وجّه يدك نحو الكاميرا وشكّل أي حرف من أبجدية الإشارة العربية، ويقرأه النموذج لحظياً ويعرضه لك مكتوباً مع إشارته.</p>
+      <div class="steps-card" data-card [appReveal]="250" mask>
+      <div class="step" [appReveal]="400">
+        <div class="step-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l1.5-2h7L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13" r="3.5"/></svg></div>
+        <h3>شغّل الكاميرا</h3>
+        <p>اسمح للمتصفح باستخدام الكاميرا، ووجّه يدك داخل الإطار بإضاءة جيدة وخلفية بسيطة.</p>
+      </div>
+      <div class="step" [appReveal]="520">
+        <div class="step-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 2v4M15 2v4M9 18v4M15 18v4M2 9h4M2 15h4M18 9h4M18 15h4"/><path d="M10 12h4"/></svg></div>
+        <h3>الموديل يقرأ يدك</h3>
+        <p>يحلّل نموذج الذكاء الاصطناعي شكل اليد والأصابع في كل لقطة، ويطابقه مع إشارات الحروف العربية الـ٢٨.</p>
+      </div>
+      <div class="step" [appReveal]="640">
+        <div class="step-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/><path d="m9 12 2 2 4-4"/></svg></div>
+        <h3>يظهر الحرف</h3>
+        <p>يظهر الحرف المكتشف مع إشارته في البطاقة المجاورة للكاميرا، وكرّر الإشارات لتكوّن كلمات حرفاً حرفاً.</p>
+      </div>
+    </div>
+    </div>
+
+    <div id="cam-start">
+    <h2 [appReveal]="0" words>جرّب بالكاميرا</h2>
+    <p class="soft" [appReveal]="150" chunks>وجّه يدك نحو الكاميرا، وتظهر الإشارة المكتشفة في البطاقة المجاورة.</p>
+
+    <div class="cam-grid">
+      <div class="cam-card" data-card [appReveal]="300" mask>
+        <div class="screen">
+          <video #vid playsinline muted [class.on]="camOn()"></video>
+          @if (!camOn()) { <span class="off">الكاميرا متوقفة</span> }
+        </div>
+        <button class="btn solid wide-btn" (click)="toggleCam()">{{ camOn() ? 'إيقاف الكاميرا' : 'تشغيل الكاميرا' }}</button>
+        @if (camMsg()) { <p class="err">{{ camMsg() }}</p> }
+      </div>
+
+      <div class="cam-card res" data-card aria-live="polite" [appReveal]="420" mask>
+        @if (detected(); as d) {
+          <div class="circle"><app-hand [id]="d.id" [ch]="d.c" style="--h: 190px" /></div>
+          <div class="big">{{ d.c }}</div>
+          <div class="nm">{{ d.name }}</div>
+        } @else {
+          <div class="circle"><span class="dash">—</span></div>
+          <div class="nm">{{ camOn() ? 'بانتظار التعرّف على حرف…' : 'شغّل الكاميرا للبدء' }}</div>
+        }
+      </div>
+    </div>
+    </div>
+  </section>
+  </div>
+</main>
+
+<!-- الفوتر -->
+<footer class="foot" dir="rtl" data-bg="dark">
+  <div class="foot-cols">
+    <p class="foot-line" [appReveal]="0">نحوّل إشارة يدك إلى حروف يفهمها الجميع.</p>
+    <p class="foot-sub" [appReveal]="120">تعرّف على أبجدية الإشارة العربية، واكتب بها كلماتك، وجرّب إشاراتك أمام الكاميرا.</p>
+  </div>
+
+  <div class="marquee" aria-hidden="true">
+    <div class="mq-track">
+      @for (r of [1, 2]; track r) {
+        <div class="mq-set">
+          @for (s of letters; track s.id) { <span>{{ s.c }}</span> }
+        </div>
+      }
+    </div>
+  </div>
+
+  <div class="foot-bottom">
+    <span class="brand">
+      @if (logoOk()) { <span class="chip-logo"><img [src]="logo()" alt="" /></span> }
+      <span class="brand-name">نسمعك</span>
+    </span>
+    <span>ترجمة لغة الإشارة العربية بالذكاء الاصطناعي © 2027</span>
+  </div>
+</footer>
