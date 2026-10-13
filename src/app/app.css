@@ -109,8 +109,19 @@ main, footer { position: relative; z-index: 1; }
 .ch { display: inline-block; font-family: var(--f-display); font-size: clamp(34px, 6vw, 58px); font-weight: 800; cursor: default; padding: 0 8px; transition: color .15s, transform .15s; }
 .ch:hover, .ch:focus-visible { color: var(--blue-hi); transform: scale(1.18); }
 
-/* ===== 4) الكيبورد (أسود) ===== */
-.keys { background: #fff; padding: clamp(70px, 9vw, 120px) 4vw clamp(170px, 18vw, 260px); }
+/* ===== 4) الكيبورد (أبيض) =====
+   الأبيض يغطي الشاشة كلها على كل الأجهزة (جوال / تابلت / لابتوب / كمبيوتر / 4K):
+   الارتفاع = ارتفاع الشاشة + مقدار تداخل سكشن الكاميرا (--r)، فما يبان الأسود إلا لما تسكرول.
+   المحتوى يتوسّط عمودياً، ولو المحتوى أطول من الشاشة السكشن يكبر معه. */
+.keys {
+  background: #fff;
+  padding: clamp(70px, 9vw, 120px) 4vw clamp(170px, 18vw, 260px);
+  min-height: calc(100vh + var(--r, 0px));
+  min-height: calc(100svh + var(--r, 0px));
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
 .typed { position: relative; min-height: clamp(130px, 18vw, 190px); display: flex; justify-content: center; align-items: flex-end; flex-wrap: wrap; gap: clamp(8px, 1.4vw, 14px); margin: 26px 0; direction: rtl; }
 .th { display: flex; flex-direction: column; align-items: center; gap: 4px; animation: pop .25s ease; }
 .th span { font-family: var(--f-display); font-size: 20px; color: #6e6e73; }
