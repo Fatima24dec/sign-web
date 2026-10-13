@@ -10,8 +10,13 @@ import { Directive, ElementRef, OnDestroy, afterNextRender } from '@angular/core
  *     ولو وقفت بنص الانتقال وبطّلت تسكرول تكمل لين تستقر.
  *  بعد ما يخلص (done): السكشن يصير "مستقر" نهائياً: الزوايا صفر، والسكشن السابق يرجع تدفّق عادي (ينفك التثبيت)،
  *  فلو رجعت لفوق ونزلت ما ترجع أي حركة. الحالة محفوظة لين تحدّث الصفحة.
- *  مع prefers-reduced-motion: ما فيه تداخل ولا حركة. */
+ *  مع prefers-reduced-motion: ما فيه تداخل ولا حركة.
+ *
+ *  تعديل الجوال: لما يكون المستخدم يكتب في حقل (input) أو كيبورد الجوال مفتوح:
+ *   - ما نشغّل الحركة التلقائية (كانت تنزّل الصفحة للسكشن اللي تحت).
+ *   - ما نعيد حساب الأطوال (الكيبورد يغيّر innerHeight). */
 const TRIGGER = 0.15;      // نسبة الظاهر من السكشن الجديد اللي تشغّل الانتقال (غيّرها لو تبي أبكر/أخر)
+const MAX_SHOW = 0.5;      // أقصى جزء من الشاشة يظهر من السكشن الجديد قبل ما يكمل تلقائياً (0.5 = نص الشاشة، ارفعها لو تبي الأبيض يبقى أطول)
 const clamp = (v: number, lo: number, hi: number) => Math.min(Math.max(v, lo), hi);
 
 interface Over { el: HTMLElement; r: number; done: boolean; }
@@ -26,9 +31,11 @@ export class Sheet implements OnDestroy {
   private io?: IntersectionObserver;
   private anim: { raf: number } | null = null;
   private lastY = 0;
+  private lastW = 0;
   private dir = 0;              // اتجاه آخر سكرول: 1 لتحت، -1 لفوق
   private touching = false;     // الإصبع على الشاشة: ما نبدأ حركة تلقائية
   private suppress = false;     // أثناء تنقّل النافبار ما نشغّل الحركة التلقائية
+  private typingUntil = 0;      // بعد ما تطلع من حقل الكتابة نستنى شوي (الكيبورد يسكّر)
 
   constructor(private el: ElementRef<HTMLElement>) {
     afterNextRender(() => {
@@ -38,6 +45,7 @@ export class Sheet implements OnDestroy {
       this.pins = Array.from(root.querySelectorAll<HTMLElement>('.stk-pin'));
       this.overs = Array.from(root.querySelectorAll<HTMLElement>('.stk-over')).map((el) => ({ el, r: 0, done: false }));
       this.lastY = window.scrollY;
+      this.lastW = window.innerWidth;
 
       const p = { passive: true } as const;
       window.addEventListener('scroll', this.onScroll, p);
@@ -49,6 +57,7 @@ export class Sheet implements OnDestroy {
       window.addEventListener('touchcancel', this.onTouchEnd, p);
       window.addEventListener('mousedown', this.onUser, p);
       window.addEventListener('keydown', this.onUser, p);
+      window.addEventListener('focusout', this.onFocusOut);
 
       this.ro = new ResizeObserver(this.onResize);                 // يعيد الحساب لما يتغير ارتفاع السكشن (صور، خطوط، تغليف)
       this.pins.forEach((el) => this.ro!.observe(el));
@@ -64,11 +73,27 @@ export class Sheet implements OnDestroy {
         }, { threshold: [TRIGGER] });
         this.overs.forEach((o) => this.io!.observe(o.el));
       }
-      this.onResize();
+      this.measure();
+      this.paint();
     });
   }
 
-  private onResize = () => { this.measure(); this.paint(); };
+  /** المستخدم يكتب الحين (حقل نص مفعّل) أو لسه خارج منه قبل لحظات؟ */
+  private isTyping(): boolean {
+    if (performance.now() < this.typingUntil) return true;
+    const a = document.activeElement as HTMLElement | null;
+    return !!a && (a.tagName === 'INPUT' || a.tagName === 'TEXTAREA' || a.isContentEditable);
+  }
+  private onFocusOut = () => { this.typingUntil = performance.now() + 1000; };
+
+  private onResize = () => {
+    const w = window.innerWidth;
+    // كيبورد الجوال يفتح/يسكّر: يتغير الارتفاع بس والعرض ثابت، فما نعيد الحساب (يخرّب أطوال التثبيت)
+    if (this.isTyping() && w === this.lastW) return;
+    this.lastW = w;
+    this.measure();
+    this.paint();
+  };
 
   private onScroll = () => {
     const y = window.scrollY;
@@ -95,7 +120,7 @@ export class Sheet implements OnDestroy {
   /** وقف السكرول: لو سكشن جديد عالق بنص الانتقال (وأنت نازل) نكمله لين يستقر */
   private onIdle = () => {
     this.suppress = false;
-    if (this.anim || this.touching || this.dir <= 0) return;
+    if (this.anim || this.touching || this.dir <= 0 || this.isTyping()) return;
     for (const o of this.overs) {
       if (!o.done && this.zone(o, o.el.getBoundingClientRect().top)) { this.start(o); break; }
     }
@@ -108,7 +133,7 @@ export class Sheet implements OnDestroy {
   /** ظهر من السكشن الجديد ما يكفي (TRIGGER) وما وصل أعلى الشاشة؟ */
   private zone(o: Over, top: number): boolean {
     const vh = window.innerHeight;
-    return top > 2 && vh - top >= Math.min(TRIGGER * o.el.offsetHeight, vh * 0.5);
+    return top > 2 && vh - top >= Math.min(TRIGGER * o.el.offsetHeight, vh * MAX_SHOW);
   }
 
   /** top لكل سكشن مثبّت + نصف قطر الزاوية الأقصى لكل سكشن جديد */
@@ -132,7 +157,7 @@ export class Sheet implements OnDestroy {
 
   /** حركة تلقائية وحدة تكمل لين يغطي السكشن الجديد السابق ويستقر (easeOutCubic) */
   private start(o: Over): void {
-    if (o.done || this.anim || this.suppress || this.touching || this.dir <= 0) return;
+    if (o.done || this.anim || this.suppress || this.touching || this.dir <= 0 || this.isTyping()) return;
     const anchor = o.el.previousElementSibling as HTMLElement | null;           // علامة مكان السكشن الأصلي
     const natural = anchor ? anchor.getBoundingClientRect().top + window.scrollY - o.r : o.el.getBoundingClientRect().top + window.scrollY;
     const from = window.scrollY;
@@ -170,6 +195,7 @@ export class Sheet implements OnDestroy {
     window.removeEventListener('touchcancel', this.onTouchEnd);
     window.removeEventListener('mousedown', this.onUser);
     window.removeEventListener('keydown', this.onUser);
+    window.removeEventListener('focusout', this.onFocusOut);
     this.cancel();
     cancelAnimationFrame(this.raf);
     clearTimeout(this.idleT);

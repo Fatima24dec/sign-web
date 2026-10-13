@@ -94,6 +94,16 @@ export class App {
     this.tapT = setTimeout(() => this.onTitleLeave(), 1800);
   }
 
+  // ---------- حقل الكتابة بالجوال: نمنع القفزة لسكشن الكاميرا لما ينفتح كيبورد الجوال ----------
+  private focusY: number | null = null;
+  private focusT?: ReturnType<typeof setTimeout>;
+  @HostListener('window:focusin', ['$event']) onFocusIn(e: FocusEvent): void {
+    if (!(e.target as HTMLElement)?.classList?.contains('mobile-input')) return;
+    this.focusY = window.scrollY;                                   // نحفظ مكانك
+    clearTimeout(this.focusT);
+    this.focusT = setTimeout(() => (this.focusY = null), 1200);     // نراقب أول 1.2 ثانية بس
+  }
+
   private reduce = typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   // ---------- الكاميرا + نموذج التعرّف ----------
@@ -208,6 +218,11 @@ export class App {
     });
   }
   @HostListener('window:scroll') onScroll(): void {
+    // لو المتصفح نزّل الصفحة أول ما ضغطت حقل الكتابة، نرجّعها مكانها
+    if (this.focusY !== null && Math.abs(window.scrollY - this.focusY) > 30) {
+      window.scrollTo({ top: this.focusY, behavior: 'instant' });
+      return;
+    }
     const hero = document.getElementById('home');
     if (hero) {
       const total = hero.offsetHeight - (parseFloat(getComputedStyle(hero).paddingBottom) || 0) - window.innerHeight;

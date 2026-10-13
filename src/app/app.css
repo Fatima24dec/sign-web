@@ -335,3 +335,42 @@ main, footer { position: relative; z-index: 1; }
   .info-text { max-width: 980px; font-size: 24px; }
   .soft, .foot-sub { font-size: 20px; }
 }
+
+/* =====================================================================
+   إصلاحات الجوال — ألصقها في آخر ملف app.css (بعد آخر سطر)
+   ===================================================================== */
+
+/* 1) دائرة النتيجة: الحجم في متغيّر واحد (--cs)، واليد داخلها دايماً أصغر منها.
+      قبل كذا اليد كانت ثابتة 190px والدائرة على الجوال 150px، فتطلع برا الدائرة. */
+.circle {
+  --cs: clamp(150px, 20vw, 220px);
+  width: var(--cs);
+  height: var(--cs);
+  max-width: 100%;
+  flex: 0 0 auto;
+  overflow: hidden;
+}
+.circle app-hand { --h: calc(var(--cs) * .72) !important; }
+@media (max-width: 640px) {
+  .circle { --cs: min(52vw, 190px); }
+  .big { font-size: 52px; }
+}
+
+/* 2) الشاشة البيضاء (الكيبورد) أطول:
+      lvh = ارتفاع الشاشة الأكبر (لما شريط المتصفح يختفي في الجوال)،
+      و +16vh مسافة بيضاء زيادة قبل ما يطلع الأسود من تحتها (زوّدها أو نقّصها حسب ذوقك) */
+.keys {
+  min-height: calc(100vh + var(--r, 0px) + 16vh);
+  min-height: calc(100lvh + var(--r, 0px) + 16vh);
+}
+
+/* 3) الجوال: حقل الكتابة فوق (قدام الكيبورد) عشان المتصفح ما يحتاج ينزّل الصفحة */
+@media (pointer: coarse) and (max-width: 700px), (pointer: coarse) and (max-height: 500px) {
+  .keys {
+    justify-content: flex-start;
+    padding-top: 104px;
+    padding-bottom: clamp(200px, 36vh, 340px);
+  }
+  .keys h2 { font-size: clamp(30px, 8.5vw, 40px); margin-bottom: 4px; }
+  .typed { min-height: 100px; margin: 14px 0; }
+}
