@@ -101,6 +101,14 @@
       }
     </div>
 
+    <!-- على الجوال: بدل الكيبورد حقنا نستخدم كيبورد الجوال نفسه -->
+    <div class="mobile-kb" [appReveal]="500">
+      <input class="mobile-input" type="text" dir="rtl" lang="ar" inputmode="text" enterkeyhint="done"
+             autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+             placeholder="اضغط هنا واكتب بكيبورد جوالك" aria-label="اكتب بالعربية لتظهر إشارات الحروف"
+             (input)="onMobileInput($event)" />
+    </div>
+
     <div class="kb" [appReveal]="500">
       @for (row of rows; track $index) {
         <div class="krow" [appReveal]="550 + $index * 70">

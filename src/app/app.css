@@ -110,7 +110,7 @@ main, footer { position: relative; z-index: 1; }
 .ch:hover, .ch:focus-visible { color: var(--blue-hi); transform: scale(1.18); }
 
 /* ===== 4) الكيبورد (أسود) ===== */
-.keys { background: #fff; padding: clamp(70px, 9vw, 120px) 4vw clamp(80px, 10vw, 130px); }
+.keys { background: #fff; padding: clamp(70px, 9vw, 120px) 4vw clamp(170px, 18vw, 260px); }
 .typed { position: relative; min-height: clamp(130px, 18vw, 190px); display: flex; justify-content: center; align-items: flex-end; flex-wrap: wrap; gap: clamp(8px, 1.4vw, 14px); margin: 26px 0; direction: rtl; }
 .th { display: flex; flex-direction: column; align-items: center; gap: 4px; animation: pop .25s ease; }
 .th span { font-family: var(--f-display); font-size: 20px; color: #6e6e73; }
@@ -260,21 +260,21 @@ main, footer { position: relative; z-index: 1; }
 .info { position: relative; text-align: center; margin: 0 auto clamp(80px, 10vw, 140px); }
 .info h2 { font-family: var(--f-display); font-size: clamp(32px, 4.6vw, 58px); font-weight: 800; margin: 0 0 20px; line-height: 1.3; }
 .info-text { max-width: 820px; margin: 0 auto 14px; color: rgba(255,255,255,.72); font-size: clamp(16px, 1.8vw, 21px); line-height: 2; }
-.info-text:last-of-type { margin-bottom: clamp(36px, 5vw, 60px); }
-.steps-card { --g: clamp(16px, 3vw, 40px); max-width: 1100px; margin-inline: auto; background: #fff; border-radius: clamp(24px, 3vw, 36px);
-  padding: clamp(28px, 4vw, 56px) clamp(20px, 3vw, 48px); display: grid; grid-template-columns: repeat(3, 1fr); column-gap: var(--g);
+.info-text:last-of-type { margin-bottom: clamp(48px, 6vw, 84px); }
+.steps-card { --g: clamp(24px, 4vw, 56px); max-width: 1100px; margin-inline: auto; background: #fff; border-radius: clamp(24px, 3vw, 36px);
+  padding: clamp(36px, 5vw, 72px) clamp(24px, 3.5vw, 56px); display: grid; grid-template-columns: repeat(3, 1fr); column-gap: var(--g);
   box-shadow: 0 0 0 1px rgba(255,255,255,.08); }
 .step { position: relative; }
-.step-ico { width: 56px; height: 56px; margin: 0 auto 22px; border-radius: 16px; display: grid; place-items: center; color: var(--blue);
+.step-ico { width: 56px; height: 56px; margin: 0 auto 26px; border-radius: 16px; display: grid; place-items: center; color: var(--blue);
   background: rgba(var(--blue-rgb), .1); box-shadow: inset 0 0 0 1px rgba(var(--blue-rgb), .14), 0 8px 20px rgba(var(--blue-rgb), .12); }
 .step-ico svg { width: 26px; height: 26px; }
 .step:not(:last-child)::after { content: ""; position: absolute; top: 27px; height: 2px; border-radius: 2px;
   left: calc(-50% - var(--g) + 40px); width: calc(100% + var(--g) - 80px);
   background: linear-gradient(90deg, transparent, rgba(var(--blue-rgb), .45) 50%, transparent); }
-.step h3 { margin: 0 0 10px; font-family: var(--f-display); font-size: clamp(20px, 2vw, 26px); font-weight: 800; color: var(--ink); }
+.step h3 { margin: 0 0 14px; font-family: var(--f-display); font-size: clamp(20px, 2vw, 26px); font-weight: 800; color: var(--ink); }
 .step p { margin: 0 auto; max-width: 320px; color: #6e6e73; font-size: clamp(14px, 1.4vw, 16px); line-height: 1.9; }
-@media (max-width: 760px) {
-  .steps-card { grid-template-columns: 1fr; row-gap: 36px; }
+@media (max-width: 820px) {
+  .steps-card { grid-template-columns: 1fr; row-gap: 44px; }
   .step:not(:last-child)::after { display: none; }
 }
 @media (prefers-reduced-motion: reduce) { .hero { padding-bottom: 0; } }
@@ -284,3 +284,43 @@ main, footer { position: relative; z-index: 1; }
   background: radial-gradient(circle, rgba(29,29,31,.16) 1.2px, transparent 1.7px) 0 0 / 28px 28px;
   -webkit-mask-image: radial-gradient(ellipse 55% 55% at 50% 62%, transparent 0 40%, #000 85%);
   mask-image: radial-gradient(ellipse 55% 55% at 50% 62%, transparent 0 40%, #000 85%); }
+
+/* ===== كيبورد الجوال: على الجوال (لمس + شاشة صغيرة) نخفي الكيبورد حقنا ونستخدم كيبورد الجوال نفسه ===== */
+.mobile-kb { display: none; width: min(100%, 520px); margin: 0 auto; }
+.mobile-input { width: 100%; padding: 16px 20px; border-radius: 20px; border: 1px solid rgba(0,0,0,.1); background: #e2e3e9;
+  font-family: var(--f-main); font-size: 18px; color: var(--ink); text-align: center; direction: rtl;   /* 16px+ عشان آيفون ما يكبّر الصفحة */
+  box-shadow: 0 14px 40px rgba(0,0,0,.14); }
+.mobile-input::placeholder { color: #6e6e73; }
+.mobile-input:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(var(--blue-rgb), .25), 0 14px 40px rgba(0,0,0,.14); }
+@media (pointer: coarse) and (max-width: 700px), (pointer: coarse) and (max-height: 500px) {
+  .kb { display: none; }
+  .mobile-kb { display: block; }
+}
+
+/* ===== ريسبونسف إضافي ===== */
+/* تابلت وجوال كبير: الهيدر ما يتزاحم (الشعار + الروابط تتمرر لو ضاقت) */
+@media (max-width: 820px) {
+  .top { grid-template-columns: auto 1fr; gap: 6px; }
+  .top nav { justify-self: end; gap: 0; overflow-x: auto; scrollbar-width: none; max-width: 100%; }
+  .top nav::-webkit-scrollbar { display: none; }
+}
+/* جوال صغير جداً */
+@media (max-width: 380px) {
+  .top nav { font-size: 12.5px; }
+  .top nav a { padding: 8px 6px; }
+  .chip-logo img { height: 22px; }
+  .info h2, .keys h2, .block h2, .cam h2 { font-size: 30px; }
+}
+/* شاشات ضخمة (٤K / ultrawide) */
+@media (min-width: 2200px) {
+  .title .line { font-size: clamp(120px, min(9vw, 18vh), 300px); }
+  .mini app-hand { --h: min(clamp(110px, 15vh, 230px), 21vw); }
+  .sentence { font-size: clamp(60px, 4.4vw, 120px); }
+  .steps-card { max-width: 1400px; }
+  .cam-grid { max-width: 1600px; }
+  .kb { width: min(100%, 1180px); }
+  .key { max-width: 88px; }
+  .grid { max-width: 1200px; }
+  .info-text { max-width: 980px; font-size: 24px; }
+  .soft, .foot-sub { font-size: 20px; }
+}

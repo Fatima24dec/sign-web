@@ -56,10 +56,22 @@ export class App {
     this.down.set(s.id);
     setTimeout(() => this.down.set(''), 180);
   }
+  /** كيبورد الجوال: نبني الإشارات من نص الحقل كل مرة (يدعم الحذف واللصق) */
+  onMobileInput(e: Event): void {
+    const v = (e.target as HTMLInputElement).value;
+    const list: (Sign | null)[] = [];
+    for (const ch of v) {
+      if (ch === ' ') list.push(null);
+      else { const s = this.sign(ch); if (s) list.push(s); }
+    }
+    this.typed.set(list.slice(-12));
+    this.kbActive.set([...list].reverse().find((x): x is Sign => !!x) ?? null);
+  }
   space(): void { this.typed.update((t) => [...t.slice(-11), null]); }
   back(): void { this.typed.update((t) => t.slice(0, -1)); }
   @HostListener('window:keydown', ['$event']) onKey(e: KeyboardEvent): void {
     if (e.ctrlKey || e.metaKey || e.altKey) return;
+    if ((e.target as HTMLElement)?.tagName === 'INPUT') return;      // الكتابة بحقل الجوال تنعالج بـ onMobileInput
     // الكيبورد لازم يكون هو الظاهر بنص الشاشة (مو مغطّى بسكشن ثاني)
     const mid = document.elementFromPoint(window.innerWidth / 2, window.innerHeight / 2);
     if (!mid?.closest('.keys')) return;
