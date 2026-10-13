@@ -28,8 +28,12 @@ const FRAMES_NEEDED = 5;      // عدد التوقعات المتتالية لت
 const NO_HAND_LIMIT = 3;      // دورات بدون يد قبل السماح بحرف جديد
 const INTERVAL_MS = 100;      // كل كم ms يتم التعرف
 
-/** true: ملفات ONNX Runtime (wasm) تنحمّل من CDN (أضمن مع سيرفر التطوير)، false: من ملفات الموقع (public/ort) */
-const ORT_WASM_FROM_CDN = true;
+/** المكتبتان تنحمّلان من CDN وقت التشغيل (بدون npm وبدون bundling)،
+ *  عشان سيرفر التطوير ما يحتاج يجهّزهم ويستهلك ذاكرة الجهاز. */
+const ORT_VERSION = '1.20.1';
+const MP_VERSION = '0.10.18';
+const ORT_CDN = `https://cdn.jsdelivr.net/npm/onnxruntime-web@${ORT_VERSION}/dist/`;
+const MP_CDN = `https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${MP_VERSION}`;
 
 @Injectable({ providedIn: 'root' })
 export class SignRecognitionService {
@@ -61,18 +65,28 @@ export class SignRecognitionService {
     }
   }
 
+  private loadScript(src: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+      if (document.querySelector(`script[src="${src}"]`)) { resolve(); return; }
+      const s = document.createElement('script');
+      s.src = src;
+      s.onload = () => resolve();
+      s.onerror = () => reject(new Error('تعذّر تحميل ' + src + ' (تأكد من الإنترنت)'));
+      document.head.appendChild(s);
+    });
+  }
+
   async init(): Promise<void> {
     if (this.ready) return;
     const base = document.baseURI;
     const url = (p: string) => new URL(p, base).href;
 
-    // 1) ONNX Runtime (تحميل كسول عشان ما يكبّر حجم الموقع الأساسي)
-    const ort: any = await this.step('تحميل مكتبة onnxruntime-web', () => import('onnxruntime-web'));
+    // 1) ONNX Runtime من CDN
+    await this.step('تحميل مكتبة onnxruntime-web (CDN)', () => this.loadScript(ORT_CDN + 'ort.min.js'));
+    const ort: any = (window as any).ort;
     ort.env.wasm.numThreads = 1;
     ort.env.wasm.proxy = false;
-    ort.env.wasm.wasmPaths = ORT_WASM_FROM_CDN
-      ? `https://cdn.jsdelivr.net/npm/onnxruntime-web@${ort.env.versions.web}/dist/`
-      : url('ort/');
+    ort.env.wasm.wasmPaths = ORT_CDN;
     this.ort = ort;
 
     // 2) نموذج YOLO
@@ -100,22 +114,17 @@ export class SignRecognitionService {
       console.info('[sign] مدخل:', this.session.inputNames, 'مخرج:', this.session.outputNames, '| softmax مطلوب:', this.needSoftmax);
     });
 
-    // 5) كاشف اليد: أول مرة من ملفات الموقع، وإذا فشل نجرّب CDN
-    const { FilesetResolver, HandLandmarker } = await this.step('تحميل مكتبة MediaPipe', () => import('@mediapipe/tasks-vision'));
-    const makeLandmarker = async (wasmBase: string) => {
-      const fileset = await FilesetResolver.forVisionTasks(wasmBase);
-      return HandLandmarker.createFromOptions(fileset, {
+    // 5) كاشف اليد (MediaPipe) من CDN
+    const mpUrl = `${MP_CDN}/vision_bundle.mjs`;
+    const mp: any = await this.step('تحميل مكتبة MediaPipe (CDN)', () => import(/* @vite-ignore */ mpUrl));
+    this.landmarker = await this.step('تهيئة كاشف اليد', async () => {
+      const fileset = await mp.FilesetResolver.forVisionTasks(`${MP_CDN}/wasm`);
+      return mp.HandLandmarker.createFromOptions(fileset, {
         baseOptions: { modelAssetPath: url('models/hand_landmarker.task') },
         runningMode: 'VIDEO',
         numHands: 1,
       });
-    };
-    try {
-      this.landmarker = await this.step('تهيئة كاشف اليد (ملفات الموقع)', () => makeLandmarker(url('mediapipe')));
-    } catch {
-      this.landmarker = await this.step('تهيئة كاشف اليد (CDN)', () =>
-        makeLandmarker('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision/wasm'));
-    }
+    });
 
     this.ready = true;
   }

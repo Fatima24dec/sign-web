@@ -1,7 +1,8 @@
-import { Component, ElementRef, HostListener, afterNextRender, computed, signal, viewChild } from '@angular/core';
+import { Component, ElementRef, HostListener, afterNextRender, computed, inject, signal, viewChild } from '@angular/core';
 import { Hand } from './hand';
 import { Reveal } from './reveal';
 import { Sheet } from './sheet';
+import { SignRecognitionService } from './sign-recognition.service';
 
 interface Sign { c: string; id: string; name: string; }
 
@@ -95,12 +96,14 @@ export class App {
 
   private reduce = typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  // ---------- الكاميرا (جاهزة لنموذج التعلّم الآلي) ----------
+  // ---------- الكاميرا + نموذج التعرّف ----------
   vid = viewChild<ElementRef<HTMLVideoElement>>('vid');
   camOn = signal(false);
   camMsg = signal('');
   detected = signal<Sign | null>(null);
+  loading = signal(false);                         // يتحمّل النموذج؟
   private stream?: MediaStream;
+  private recog = inject(SignRecognitionService);
 
   async toggleCam(): Promise<void> {
     if (this.camOn()) { this.stopCam(); return; }
@@ -110,13 +113,31 @@ export class App {
       if (v) { v.srcObject = this.stream; await v.play(); }
       this.camOn.set(true);
       this.camMsg.set('');
-      // TODO (نموذج التعلّم الآلي): هنا تبدأ حلقة التعرّف.
-      // لكل إطار من الفيديو `v` مرّره لنموذجك، وإذا عرف حرفاً استدعي: this.showDetected('ب')
+      if (v) void this.startRecognition(v);
     } catch {
       this.camMsg.set('تعذّر تشغيل الكاميرا، اسمح للمتصفح باستخدامها.');
     }
   }
+
+  private async startRecognition(v: HTMLVideoElement): Promise<void> {
+    this.loading.set(true);
+    try {
+      await this.recog.init();                     // أول مرة فقط: يحمّل النموذج
+      if (!this.camOn()) return;                   // المستخدم أوقف الكاميرا أثناء التحميل
+      this.recog.start(v, {
+        onPredict: (p) => { if (!p) this.detected.set(null); },   // اليد اختفت: نمسح الحرف
+        onLetter: (ch) => this.showDetected(ch),                  // حرف تأكّد: نعرضه
+      });
+    } catch (e) {
+      console.error(e);
+      this.camMsg.set('تعذّر تحميل نموذج التعرّف: ' + (e instanceof Error ? e.message : ''));
+    } finally {
+      this.loading.set(false);
+    }
+  }
+
   stopCam(): void {
+    this.recog.stop();
     this.stream?.getTracks().forEach((t) => t.stop());
     this.stream = undefined;
     const v = this.vid()?.nativeElement;
@@ -124,7 +145,7 @@ export class App {
     this.camOn.set(false);
     this.detected.set(null);
   }
-  /** يستدعيها نموذجك عند التعرّف على حرف (مثلاً 'ب') */
+  /** يعرض الحرف المكتشف (مثلاً 'ب') */
   showDetected(ch: string): void { this.detected.set(this.sign(ch) ?? null); }
 
   // ---------- الشعار ----------
