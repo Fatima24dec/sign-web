@@ -23,11 +23,17 @@ jobs:
 
       - run: npm ci
       - run: npm run build -- --base-href=/sign-web/
-      - run: cp dist/sign-reveal/browser/index.html dist/sign-reveal/browser/404.html
+
+      - name: Prepare output
+        run: |
+          OUT=$(dirname "$(find dist -name index.html | head -n 1)")
+          echo "Output dir: $OUT"
+          cp "$OUT/index.html" "$OUT/404.html"
+          echo "OUT_DIR=$OUT" >> $GITHUB_ENV
 
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: dist/sign-reveal/browser
+          path: ${{ env.OUT_DIR }}
 
   deploy:
     needs: build
