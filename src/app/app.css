@@ -374,3 +374,10 @@ main, footer { position: relative; z-index: 1; }
   .keys h2 { font-size: clamp(30px, 8.5vw, 40px); margin-bottom: 4px; }
   .typed { min-height: 100px; margin: 14px 0; }
 }
+
+/* دائرة النتيجة: مسافة حوالين الحلقة المنقطة عشان ما تلمس حافة الكارد */
+.circle { margin: 26px 0; }
+@media (max-width: 640px) {
+  .circle { --cs: min(46vw, 168px); outline-offset: 10px; }   /* دائرة أصغر شوي على الجوال */
+  .res { padding: 30px 14px; }                                 /* وكارد أرحب */
+}

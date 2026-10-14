@@ -118,7 +118,10 @@ export class App {
   async toggleCam(): Promise<void> {
     if (this.camOn()) { this.stopCam(); return; }
     try {
-      this.stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false });
+      this.stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } },   // دقة خفيفة: أسرع وأقل ذاكرة
+        audio: false,
+      });
       const v = this.vid()?.nativeElement;
       if (v) { v.srcObject = this.stream; await v.play(); }
       this.camOn.set(true);

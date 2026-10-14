@@ -82,7 +82,7 @@ export class SignRecognitionService {
     const url = (p: string) => new URL(p, base).href;
 
     // 1) ONNX Runtime من CDN
-    await this.step('تحميل مكتبة onnxruntime-web (CDN)', () => this.loadScript(ORT_CDN + 'ort.min.js'));
+    await this.step('تحميل مكتبة onnxruntime-web (CDN)', () => this.loadScript(ORT_CDN + 'ort.wasm.min.js'));   // نسخة wasm فقط: أخف بكثير على الذاكرة
     const ort: any = (window as any).ort;
     ort.env.wasm.numThreads = 1;
     ort.env.wasm.proxy = false;
@@ -120,7 +120,7 @@ export class SignRecognitionService {
     this.landmarker = await this.step('تهيئة كاشف اليد', async () => {
       const fileset = await mp.FilesetResolver.forVisionTasks(`${MP_CDN}/wasm`);
       return mp.HandLandmarker.createFromOptions(fileset, {
-        baseOptions: { modelAssetPath: url('models/hand_landmarker.task') },
+        baseOptions: { modelAssetPath: url('models/hand_landmarker.task'), delegate: 'CPU' },
         runningMode: 'VIDEO',
         numHands: 1,
       });
